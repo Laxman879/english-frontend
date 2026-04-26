@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root, [data-theme="light"] {
+  --bg: #f6f8fa; --card: #ffffff; --card2: #f0f4f8;
+  --border: #e2e8f0; --text: #0f172a; --text2: #475569; --muted: #94a3b8;
+  --primary: #22c55e; --primary-dk: #16a34a; --primary-fg: #ffffff; --primary-soft: #dcfce7;
+  --blue: #3b82f6; --blue-soft: #dbeafe; --fire: #f97316; --fire-soft: #fff7ed;
+  --nav: rgba(255,255,255,0.94); --shadow: 0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.06);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.10); --input-bg: #f1f5f9;
+}
+[data-theme="dark"] {
+  --bg: #0d1117; --card: #161b22; --card2: #1c2333;
+  --border: #21262d; --text: #e6edf3; --text2: #b0bec5; --muted: #484f58;
+  --primary: #3fb950; --primary-dk: #2ea043; --primary-fg: #ffffff; --primary-soft: #0d2818;
+  --blue: #58a6ff; --blue-soft: #0d2149; --fire: #fb923c; --fire-soft: #2d1a0a;
+  --nav: rgba(13,17,23,0.96); --shadow: 0 1px 3px rgba(0,0,0,0.3),0 4px 16px rgba(0,0,0,0.3);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.5); --input-bg: #1c2333;
+}
+[data-theme="golden"] {
+  --bg: #0d0a04; --card: #1a1508; --card2: #231e0c;
+  --border: #3d3210; --text: #fefce8; --text2: #fde68a; --muted: #92700a;
+  --primary: #F5B027; --primary-dk: #d4940f; --primary-fg: #0d0a04; --primary-soft: #3d2c05;
+  --blue: #F5B027; --blue-soft: #3d2c05; --fire: #fb923c; --fire-soft: #3d1a05;
+  --nav: rgba(13,10,4,0.96); --shadow: 0 1px 3px rgba(0,0,0,0.4),0 4px 16px rgba(0,0,0,0.4);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.6); --input-bg: #231e0c;
+}
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+input,textarea{-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+
+.anim-fade-up{animation:fadeUp .45s ease both}
+.anim-fade-in{animation:fadeIn .3s ease both}
+.anim-scale-in{animation:scaleIn .3s cubic-bezier(.34,1.56,.64,1) both}
+.anim-slide-up{animation:slideUp .35s cubic-bezier(.34,1.56,.64,1) both}
+.anim-spin{animation:spin 1s linear infinite}
+.anim-pulse{animation:pulse 1.8s ease infinite}
+.d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}.d4{animation-delay:.32s}.d5{animation-delay:.40s}
+
+.telugu{font-family:'Noto Sans Telugu',sans-serif}
+.hide-scroll{scrollbar-width:none}
+.hide-scroll::-webkit-scrollbar{display:none}
+.glass{backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%)}
+.skeleton{background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:400px 100%;animation:shimmer 1.4s infinite;border-radius:12px}
+
+[data-theme="dark"] .MuiPaper-root,[data-theme="golden"] .MuiPaper-root{background-color:var(--card)!important}
+[data-theme="dark"] .MuiDialog-paper,[data-theme="golden"] .MuiDialog-paper{background-color:var(--card)!important}
+[data-theme="dark"] .MuiDivider-root,[data-theme="golden"] .MuiDivider-root{border-color:var(--border)!important}
+[data-theme="dark"] .MuiOutlinedInput-root,[data-theme="golden"] .MuiOutlinedInput-root{background:var(--input-bg)!important;color:var(--text)!important}
+[data-theme="dark"] .MuiOutlinedInput-notchedOutline,[data-theme="golden"] .MuiOutlinedInput-notchedOutline{border-color:var(--border)!important}
+[data-theme="dark"] .MuiSelect-select,[data-theme="golden"] .MuiSelect-select{color:var(--text)!important}
+[data-theme="dark"] .MuiMenuItem-root,[data-theme="golden"] .MuiMenuItem-root{background:var(--card)!important;color:var(--text)!important}
+[data-theme="dark"] .MuiMenuItem-root:hover,[data-theme="golden"] .MuiMenuItem-root:hover{background:var(--card2)!important}
+[data-theme="dark"] .MuiToggleButton-root,[data-theme="golden"] .MuiToggleButton-root{color:var(--text2)!important;border-color:var(--border)!important}
+[data-theme="dark"] .MuiToggleButton-root.Mui-selected,[data-theme="golden"] .MuiToggleButton-root.Mui-selected{background:var(--primary-soft)!important;color:var(--primary)!important}
+[data-theme="dark"] nav,[data-theme="golden"] nav{background:var(--nav)!important;border-color:var(--border)!important}
