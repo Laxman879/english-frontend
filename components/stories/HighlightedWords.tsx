@@ -1,13 +1,13 @@
 'use client';
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookmarkCheck, Volume2 } from 'lucide-react';
+import { BookmarkCheck, Volume2, Trash2 } from 'lucide-react';
 
 interface SavedWord { word: string; meaning: string; }
 
-interface Props { savedWords?: SavedWord[]; }
+interface Props { savedWords?: SavedWord[]; onDelete?: (word: string) => void; }
 
-const HighlightedWords = memo(function HighlightedWords({ savedWords = [] }: Props) {
+const HighlightedWords = memo(function HighlightedWords({ savedWords = [], onDelete }: Props) {
   const [spoken, setSpoken] = useState<string | null>(null);
 
   const speak = (word: string) => {
@@ -57,14 +57,24 @@ const HighlightedWords = memo(function HighlightedWords({ savedWords = [] }: Pro
                   <p className="text-sm font-bold text-[var(--text)] capitalize">{w.word}</p>
                   {w.meaning && <p className="text-xs text-[var(--text2)] leading-snug mt-0.5 line-clamp-2">{w.meaning}</p>}
                 </div>
-                <button
-                  onClick={() => speak(w.word)}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                    spoken === w.word ? 'bg-[var(--primary)] text-white' : 'bg-[var(--border)] text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)]'
-                  }`}
-                >
-                  <Volume2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => speak(w.word)}
+                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                      spoken === w.word ? 'bg-[var(--primary)] text-white' : 'bg-[var(--border)] text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)]'
+                    }`}
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                  </button>
+                  {onDelete && (
+                    <button
+                      onClick={() => onDelete(w.word)}
+                      className="w-7 h-7 rounded-full flex items-center justify-center transition-all bg-[var(--border)] text-[var(--muted)] hover:bg-red-500/10 hover:text-red-500"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>

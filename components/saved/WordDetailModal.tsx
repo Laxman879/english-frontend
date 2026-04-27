@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { type Word } from './WordCard';
 import ImageUploader from '@/components/shared/ImageUploader';
 import ConfirmModal from '@/components/shared/ConfirmModal';
+import { useWords } from '@/lib/WordsContext';
 
 interface Props {
   word: Word | null;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 const WordDetailModal = memo(function WordDetailModal({ word, onClose, onUpdate, onDelete }: Props) {
+  const { updateWord, deleteWord } = useWords();
   const [editing, setEditing]         = useState(false);
   const [editingImg, setEditingImg]   = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -27,18 +29,25 @@ const WordDetailModal = memo(function WordDetailModal({ word, onClose, onUpdate,
   const [present, setPresent]     = useState(word?.examples?.present || '');
   const [future, setFuture]       = useState(word?.examples?.future || '');
   const [image, setImage]         = useState(word?.image || '');
+  const [translations, setTranslations] = useState<Record<string, string>>(word?.translations || {});
 
-  // Sync state when a different word is opened
+  // Sync state when word changes (different word opened, or same word updated)
   useEffect(() => {
-    setWordVal(word?.word || '');
-    setMeaning(word?.translation || '');
-    setPast(word?.examples?.past || '');
-    setPresent(word?.examples?.present || '');
-    setFuture(word?.examples?.future || '');
-    setImage(word?.image || '');
+    if (!word) return;
+    setWordVal(word.word || '');
+    setMeaning(word.translation || '');
+    setPast(word.examples?.past || '');
+    setPresent(word.examples?.present || '');
+    setFuture(word.examples?.future || '');
+    setImage(word.image || '');
+    setTranslations(word.translations || {});
+  }, [word?.id, word?.word, word?.translation, word?.image, word?.examples, word?.translations]);
+
+  // Reset editing mode only when a different word is opened
+  useEffect(() => {
     setEditing(false);
     setEditingImg(false);
-  }, [word?._id ?? word?.id]);
+  }, [word?.id]);
 
   const speak = useCallback(() => {
     if (!word || !('speechSynthesis' in window)) return;
@@ -52,35 +61,35 @@ const WordDetailModal = memo(function WordDetailModal({ word, onClose, onUpdate,
     if (!word) return;
     setSaving(true);
     try {
-      await api.put(`/words/${word.id}`, { word: wordVal, meaning });
+      await api.put(`/words/${word.id}`, { word: wordVal, meaning, translations });
       await api.put(`/words/${word.id}/examples`, { past, present, future });
-      onUpdate({ ...word, word: wordVal, translation: meaning, image, examples: { past, present, future } });
+      const updated = { ...word, word: wordVal, translation: meaning, image, examples: { past, present, future }, translations };
+      updateWord(updated);
+      onUpdate(updated);
       setEditing(false);
-    } finally {
-      setSaving(false);
-    }
-  }, [word, wordVal, meaning, past, present, future, image, onUpdate]);
+    } finally { setSaving(false); }
+  }, [word, wordVal, meaning, past, present, future, image, translations, onUpdate, updateWord]);
 
   const handleSaveImage = useCallback(async (url: string) => {
     if (!word) return;
     await api.put(`/words/${word.id}`, { image: url });
     setImage(url);
-    onUpdate({ ...word, image: url });
+    const updated = { ...word, image: url };
+    updateWord(updated);
+    onUpdate(updated);
     setEditingImg(false);
-  }, [word, onUpdate]);
+  }, [word, onUpdate, updateWord]);
 
   const handleDelete = useCallback(async () => {
     if (!word) return;
     setDeleting(true);
     try {
       await api.delete(`/words/${word.id}`);
+      deleteWord(word.id);
       onDelete(word.id);
       onClose();
-    } finally {
-      setDeleting(false);
-      setConfirmDelete(false);
-    }
-  }, [word, onDelete, onClose]);
+    } finally { setDeleting(false); setConfirmDelete(false); }
+  }, [word, onDelete, onClose, deleteWord]);
 
   const inputCls = "w-full px-3 py-2 text-sm bg-[var(--card2)] border border-[var(--border)] rounded-xl text-[var(--text)] focus:outline-none focus:border-[var(--primary)] transition-all";
 
@@ -167,6 +176,36 @@ const WordDetailModal = memo(function WordDetailModal({ word, onClose, onUpdate,
                   }
                 </div>
 
+                {/* Translations */}
+                {(editing ? Object.keys(translations).length > 0 : true) && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Translations</p>
+                    {editing ? (
+                      <div className="space-y-2">
+                        {Object.entries(translations).map(([lang, val]) => (
+                          <div key={lang} className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] w-20 shrink-0">{lang}</span>
+                            <input
+                              value={val}
+                              onChange={e => setTranslations(prev => ({ ...prev, [lang]: e.target.value }))}
+                              className={inputCls}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(word?.translations || {}).map(([lang, val]) => (
+                          <div key={lang} className="bg-[var(--card2)] rounded-xl p-2.5">
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] mb-0.5">{lang}</p>
+                            <p className="text-sm font-semibold text-[var(--text)]">{val}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Sentences */}
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Example Sentences</p>
@@ -196,7 +235,7 @@ const WordDetailModal = memo(function WordDetailModal({ word, onClose, onUpdate,
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-[var(--primary)] text-white rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50">
                       <Check className="w-4 h-4" />{saving ? 'Saving…' : 'Save Changes'}
                     </button>
-                    <button onClick={() => { setEditing(false); setWordVal(word.word); setMeaning(word.translation); setPast(word.examples?.past || ''); setPresent(word.examples?.present || ''); setFuture(word.examples?.future || ''); }}
+                    <button onClick={() => { setEditing(false); setWordVal(word.word); setMeaning(word.translation); setPast(word.examples?.past || ''); setPresent(word.examples?.present || ''); setFuture(word.examples?.future || ''); setTranslations(word.translations || {}); }}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-[var(--card2)] text-[var(--text2)] rounded-xl text-sm font-semibold hover:bg-[var(--border)]">
                       <X className="w-4 h-4" />Cancel
                     </button>

@@ -1,7 +1,7 @@
 'use client';
 import { memo, useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Play, Pause, SkipForward, SkipBack, X, Camera, Pencil, Trash2, Check, Volume2 } from 'lucide-react';
+import { Search, Plus, Play, Pause, SkipForward, SkipBack, X, Camera, Pencil, Trash2, Check, Volume2, ChevronDown } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import CreatePlaylistModal from '@/components/playlists/CreatePlaylistModal';
 import ImageUploader from '@/components/shared/ImageUploader';
@@ -15,6 +15,13 @@ interface PlaylistWord {
   translations: Record<string, string>;
 }
 
+interface PlaylistStory {
+  _id: string;
+  storyText: string;
+}
+
+type PlayItem = { kind: 'word'; data: PlaylistWord } | { kind: 'story'; data: PlaylistStory };
+
 interface Playlist {
   id: string;
   title: string;
@@ -26,17 +33,18 @@ interface Playlist {
 }
 
 const PlaylistsPage = memo(function PlaylistsPage() {
-  const [playlists, setPlaylists]       = useState<Playlist[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [playingId, setPlayingId]       = useState<string | null>(null);
-  const [playingWords, setPlayingWords] = useState<PlaylistWord[]>([]);
-  const [playingIdx, setPlayingIdx]     = useState(0);
-  const [searchOpen, setSearchOpen]     = useState(false);
-  const [search, setSearch]             = useState('');
-  const [modalOpen, setModalOpen]       = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Playlist | null>(null);
-  const [deleting, setDeleting]         = useState(false);
-  const playingWordsRef                 = useRef<PlaylistWord[]>([]);
+  const [playlists, setPlaylists]         = useState<Playlist[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [playingId, setPlayingId]         = useState<string | null>(null);
+  const [playItems, setPlayItems]         = useState<PlayItem[]>([]);
+  const [playingIdx, setPlayingIdx]       = useState(0);
+  const [searchOpen, setSearchOpen]       = useState(false);
+  const [search, setSearch]               = useState('');
+  const [modalOpen, setModalOpen]         = useState(false);
+  const [deleteTarget, setDeleteTarget]   = useState<Playlist | null>(null);
+  const [deleting, setDeleting]           = useState(false);
+  const [expandedId, setExpandedId]       = useState<string | null>(null);
+  const playItemsRef                      = useRef<PlayItem[]>([]);
 
   useEffect(() => {
     api.get('/playlists')
@@ -49,75 +57,76 @@ const PlaylistsPage = memo(function PlaylistsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Get Telugu translation from word
   const getTranslation = (w: PlaylistWord) => {
     if (!w.translations) return w.meaning;
     return w.translations['telugu'] || w.translations['hindi'] ||
       Object.values(w.translations)[0] || w.meaning;
   };
 
-  const speakWord = useCallback((words: PlaylistWord[], idx: number) => {
-    if (!('speechSynthesis' in window) || idx >= words.length) {
-      setPlayingId(null); setPlayingWords([]); setPlayingIdx(0);
-      playingWordsRef.current = [];
+  const speakItem = useCallback((items: PlayItem[], idx: number) => {
+    if (!('speechSynthesis' in window) || idx >= items.length) {
+      setPlayingId(null); setPlayItems([]); setPlayingIdx(0);
+      playItemsRef.current = [];
       return;
     }
     window.speechSynthesis.cancel();
-    const w = words[idx];
-    const translation = getTranslation(w);
+    const item = items[idx];
+    const advance = () => { const next = idx + 1; setPlayingIdx(next); speakItem(playItemsRef.current, next); };
 
-    // Speak English word first
-    const uEn = new SpeechSynthesisUtterance(w.word);
-    uEn.lang = 'en-US'; uEn.rate = 0.85;
-
-    // Then speak Telugu/native translation
-    const uTe = new SpeechSynthesisUtterance(translation);
-    uTe.lang = 'te-IN'; uTe.rate = 0.85;
-    uTe.onend = () => {
-      const next = idx + 1;
-      setPlayingIdx(next);
-      speakWord(playingWordsRef.current, next);
-    };
-
-    window.speechSynthesis.speak(uEn);
-    window.speechSynthesis.speak(uTe);
+    if (item.kind === 'story') {
+      const u = new SpeechSynthesisUtterance(item.data.storyText);
+      u.lang = 'en-US'; u.rate = 0.9;
+      u.onend = advance;
+      window.speechSynthesis.speak(u);
+    } else {
+      const uEn = new SpeechSynthesisUtterance(item.data.word);
+      uEn.lang = 'en-US'; uEn.rate = 0.85;
+      const uTe = new SpeechSynthesisUtterance(getTranslation(item.data));
+      uTe.lang = 'te-IN'; uTe.rate = 0.85;
+      uTe.onend = advance;
+      window.speechSynthesis.speak(uEn);
+      window.speechSynthesis.speak(uTe);
+    }
   }, []);
 
   const handlePlay = useCallback(async (id: string) => {
     if (playingId === id) {
       window.speechSynthesis.cancel();
-      setPlayingId(null); setPlayingWords([]); setPlayingIdx(0);
-      playingWordsRef.current = [];
+      setPlayingId(null); setPlayItems([]); setPlayingIdx(0);
+      playItemsRef.current = [];
       return;
     }
     window.speechSynthesis.cancel();
     try {
       const { data } = await api.get(`/playlists/${id}`);
-      const words: PlaylistWord[] = data.words || [];
-      if (!words.length) { alert('No words in this playlist yet. Add words from the Saved Words page.'); return; }
-      playingWordsRef.current = words;
-      setPlayingId(id); setPlayingWords(words); setPlayingIdx(0);
-      speakWord(words, 0);
+      const items: PlayItem[] = [
+        ...(data.stories || []).map((s: PlaylistStory) => ({ kind: 'story' as const, data: s })),
+        ...(data.words   || []).map((w: PlaylistWord)  => ({ kind: 'word'  as const, data: w })),
+      ];
+      if (!items.length) { alert('No items in this playlist yet.'); return; }
+      playItemsRef.current = items;
+      setPlayingId(id); setPlayItems(items); setPlayingIdx(0);
+      speakItem(items, 0);
     } catch {
-      alert('Failed to load playlist words.');
+      alert('Failed to load playlist.');
     }
-  }, [playingId, speakWord]);
+  }, [playingId, speakItem]);
 
   const handleSkipNext = useCallback(() => {
     const next = playingIdx + 1;
-    if (next < playingWords.length) {
+    if (next < playItems.length) {
       window.speechSynthesis.cancel();
       setPlayingIdx(next);
-      speakWord(playingWords, next);
+      speakItem(playItems, next);
     }
-  }, [playingIdx, playingWords, speakWord]);
+  }, [playingIdx, playItems, speakItem]);
 
   const handleSkipBack = useCallback(() => {
     const prev = Math.max(0, playingIdx - 1);
     window.speechSynthesis.cancel();
     setPlayingIdx(prev);
-    speakWord(playingWords, prev);
-  }, [playingIdx, playingWords, speakWord]);
+    speakItem(playItems, prev);
+  }, [playingIdx, playItems, speakItem]);
 
   const handleCreate = async (name: string) => {
     const { data } = await api.post('/playlists', { name });
@@ -140,6 +149,32 @@ const PlaylistsPage = memo(function PlaylistsPage() {
     setPlaylists(prev => prev.map(p => p.id === id ? { ...p, title: title.trim(), editingTitle: false } : p));
   }, []);
 
+  type ExpandedItem = { _id: string; kind: 'word'; word: string; meaning: string } | { _id: string; kind: 'story'; storyText: string };
+
+  const [expandedItems, setExpandedItems] = useState<Record<string, ExpandedItem[]>>({});
+
+  const toggleExpand = useCallback(async (id: string) => {
+    if (expandedId === id) { setExpandedId(null); return; }
+    setExpandedId(id);
+    if (!expandedItems[id]) {
+      const { data } = await api.get(`/playlists/${id}`);
+      const items: ExpandedItem[] = [
+        ...(data.stories || []).map((s: PlaylistStory) => ({ _id: s._id, kind: 'story' as const, storyText: s.storyText })),
+        ...(data.words   || []).map((w: PlaylistWord)  => ({ _id: w._id, kind: 'word'  as const, word: w.word, meaning: w.meaning })),
+      ];
+      setExpandedItems(prev => ({ ...prev, [id]: items }));
+    }
+  }, [expandedId, expandedItems]);
+
+  const handleRemoveItem = useCallback(async (playlistId: string, itemId: string) => {
+    const { data } = await api.get(`/playlists/${playlistId}`);
+    const playlistItem = data.items?.find((i: { refId: string; _id: string }) => i.refId === itemId);
+    if (!playlistItem) return;
+    await api.delete(`/playlists/${playlistId}/items`, { data: { itemId: playlistItem._id } });
+    setExpandedItems(prev => ({ ...prev, [playlistId]: prev[playlistId].filter(w => w._id !== itemId) }));
+    setPlaylists(prev => prev.map(p => p.id === playlistId ? { ...p, wordCount: p.wordCount - 1 } : p));
+  }, []);
+
   const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -151,7 +186,7 @@ const PlaylistsPage = memo(function PlaylistsPage() {
   }, [deleteTarget]);
 
   const filtered = playlists.filter(p => p.title.toLowerCase().includes(search.toLowerCase()));
-  const currentWord = playingWords[playingIdx];
+  const currentItem = playItems[playingIdx];
 
   return (
     <AppLayout>
@@ -195,16 +230,27 @@ const PlaylistsPage = memo(function PlaylistsPage() {
 
           {/* Now Playing bar */}
           <AnimatePresence>
-            {playingId && currentWord && (
+            {playingId && currentItem && (
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                 className="mb-5 bg-[var(--primary)] rounded-2xl p-4 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
                   <Volume2 className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">Now Playing · {playingIdx + 1} of {playingWords.length}</p>
-                  <p className="text-base font-extrabold text-white truncate">{currentWord.word}</p>
-                  <p className="text-xs text-white/70 truncate">{getTranslation(currentWord)}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                    Now Playing · {playingIdx + 1} of {playItems.length}
+                  </p>
+                  {currentItem.kind === 'story' ? (
+                    <>
+                      <p className="text-base font-extrabold text-white truncate">📖 Story</p>
+                      <p className="text-xs text-white/70 truncate">{currentItem.data.storyText.slice(0, 60)}…</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-base font-extrabold text-white truncate">{currentItem.data.word}</p>
+                      <p className="text-xs text-white/70 truncate">{getTranslation(currentItem.data)}</p>
+                    </>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button onClick={handleSkipBack}
@@ -253,13 +299,11 @@ const PlaylistsPage = memo(function PlaylistsPage() {
                       <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                      {/* Camera btn */}
                       <button onClick={() => startEditImg(p.id)}
-                        className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/60 z-10">
+                        className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-black/60 z-10">
                         <Camera className="w-3.5 h-3.5 text-white" />
                       </button>
 
-                      {/* Playing indicator */}
                       {isPlaying && (
                         <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-[var(--primary)] rounded-full px-2.5 py-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
@@ -267,7 +311,6 @@ const PlaylistsPage = memo(function PlaylistsPage() {
                         </div>
                       )}
 
-                      {/* Bottom info */}
                       <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
                         {p.editingTitle ? (
                           <div className="flex items-center gap-1.5 mb-1" onClick={e => e.stopPropagation()}>
@@ -286,7 +329,7 @@ const PlaylistsPage = memo(function PlaylistsPage() {
                         ) : (
                           <h4 className="text-sm font-extrabold text-white truncate mb-0.5">{p.title}</h4>
                         )}
-                        <p className="text-[10px] text-white/60">{p.wordCount} {p.wordCount === 1 ? 'word' : 'words'}</p>
+                        <p className="text-[10px] text-white/60">{p.wordCount} {p.wordCount === 1 ? 'item' : 'items'}</p>
                       </div>
                     </div>
 
@@ -300,15 +343,47 @@ const PlaylistsPage = memo(function PlaylistsPage() {
                         className="w-8 h-8 rounded-xl bg-[var(--card2)] flex items-center justify-center hover:bg-red-500/10 hover:text-red-500 transition-all text-[var(--text2)]">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
+                      <button onClick={() => toggleExpand(p.id)}
+                        className={`w-8 h-8 rounded-xl bg-[var(--card2)] flex items-center justify-center transition-all text-[var(--text2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] ${expandedId === p.id ? 'bg-[var(--primary-soft)] text-[var(--primary)]' : ''}`}>
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedId === p.id ? 'rotate-180' : ''}`} />
+                      </button>
                       <button onClick={() => handlePlay(p.id)}
                         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
                           isPlaying
                             ? 'bg-[var(--primary)] text-white'
                             : 'bg-[var(--primary-soft)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white'
                         }`}>
-                        {isPlaying ? <><Pause className="w-3.5 h-3.5" /> Stop</> : <><Play className="w-3.5 h-3.5 fill-current" /> Play Words</>}
+                        {isPlaying ? <><Pause className="w-3.5 h-3.5" /> Stop</> : <><Play className="w-3.5 h-3.5 fill-current" /> Play</>}
                       </button>
                     </div>
+
+                    {/* Items list */}
+                    <AnimatePresence>
+                      {expandedId === p.id && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden border-t border-[var(--border)]">
+                          <div className="px-3 py-2 space-y-1 max-h-48 overflow-y-auto">
+                            {!expandedItems[p.id] ? (
+                              <p className="text-xs text-[var(--muted)] py-2 text-center">Loading…</p>
+                            ) : expandedItems[p.id].length === 0 ? (
+                              <p className="text-xs text-[var(--muted)] py-2 text-center">No items yet</p>
+                            ) : expandedItems[p.id].map(item => (
+                              <div key={item._id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-[var(--card2)] group">
+                                <span className="text-[10px] shrink-0">{item.kind === 'story' ? '📖' : '🔤'}</span>
+                                <span className="flex-1 text-xs font-semibold text-[var(--text)] truncate">
+                                  {item.kind === 'story' ? item.storyText.slice(0, 40) + '…' : item.word}
+                                </span>
+                                {item.kind === 'word' && <span className="text-[10px] text-[var(--muted)] truncate max-w-[80px]">{item.meaning}</span>}
+                                <button onClick={() => handleRemoveItem(p.id, item._id)}
+                                  className="w-6 h-6 rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500 text-[var(--muted)] transition-all">
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {p.editingImg && (
                       <ImageUploader onSave={(url) => saveImage(p.id, url)} onCancel={() => cancelEditImg(p.id)} />

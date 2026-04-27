@@ -2,6 +2,7 @@
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/lib/ThemeContext';
 import { AudioProvider } from '@/lib/AudioContext';
 import { AuthProvider } from '@/lib/AuthContext';
+import { WordsProvider } from '@/lib/WordsContext';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { lightTheme, darkTheme, redTheme } from '@/lib/muiTheme';
@@ -25,7 +26,9 @@ export default function Providers({ children }: { children: ReactNode }) {
       <AppThemeProvider>
         <AuthProvider>
           <AudioProvider>
-            <MuiWrapper>{children}</MuiWrapper>
+            <WordsProvider>
+              <MuiWrapper>{children}</MuiWrapper>
+            </WordsProvider>
           </AudioProvider>
         </AuthProvider>
       </AppThemeProvider>

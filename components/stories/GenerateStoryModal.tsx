@@ -19,6 +19,8 @@ const GENRES = [
   { id: 'daily life',  label: 'Daily Life',   emoji: '☀️' },
 ];
 
+const WORD_COUNTS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+
 interface Word { id: string; word: string; }
 interface Story { _id: string; storyText: string; image?: string; }
 
@@ -32,6 +34,7 @@ export default function GenerateStoryModal({ open, onClose, onGenerated }: Props
   const [words, setWords]                   = useState<Word[]>([]);
   const [selectedWords, setSelectedWords]   = useState<Set<string>>(new Set());
   const [selectedGenre, setSelectedGenre]   = useState('');
+  const [wordCount, setWordCount]           = useState(100);
   const [generating, setGenerating]         = useState(false);
   const [error, setError]                   = useState('');
   const [dropdownOpen, setDropdownOpen]     = useState(false);
@@ -53,6 +56,7 @@ export default function GenerateStoryModal({ open, onClose, onGenerated }: Props
       api.get('/words').then(r => setWords(r.data.map((w: Record<string, string>) => ({ id: w._id, word: w.word }))));
       setSelectedWords(new Set());
       setSelectedGenre('');
+      setWordCount(100);
       setError('');
       setSearch('');
       setDropdownOpen(false);
@@ -82,7 +86,7 @@ export default function GenerateStoryModal({ open, onClose, onGenerated }: Props
     setGenerating(true);
     try {
       const selectedWordNames = words.filter(w => selectedWords.has(w.id)).map(w => w.word);
-      const { data } = await api.post('/stories/generate', { words: selectedWordNames, genre: selectedGenre });
+      const { data } = await api.post('/stories/generate', { words: selectedWordNames, genre: selectedGenre, wordCount });
       onGenerated(data);
       onClose();
     } catch {
@@ -142,6 +146,26 @@ export default function GenerateStoryModal({ open, onClose, onGenerated }: Props
                       <span className={`text-[10px] font-bold ${selectedGenre === g.id ? 'text-[var(--primary)]' : 'text-[var(--text2)]'}`}>
                         {g.label}
                       </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Word count picker */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Story Length</p>
+                  <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary-soft)] px-2 py-0.5 rounded-full">{wordCount} words</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {WORD_COUNTS.map(c => (
+                    <button key={c} onClick={() => setWordCount(c)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all active:scale-95 ${
+                        wordCount === c
+                          ? 'border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)]'
+                          : 'border-[var(--border)] bg-[var(--card2)] text-[var(--text2)] hover:border-[var(--primary)]/50'
+                      }`}>
+                      {c}
                     </button>
                   ))}
                 </div>

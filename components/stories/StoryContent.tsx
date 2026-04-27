@@ -4,6 +4,7 @@ import { Play, Pause, Camera, Pencil, Trash2, Check, X, BookmarkPlus } from 'luc
 import api from '@/lib/api';
 import ImageUploader from '@/components/shared/ImageUploader';
 import ConfirmModal from '@/components/shared/ConfirmModal';
+import { useWords } from '@/lib/WordsContext';
 
 interface Props {
   storyId?: string;
@@ -24,6 +25,7 @@ function tokenize(text: string): { value: string; isWord: boolean }[] {
 const StoryContent = memo(function StoryContent({
   storyId = 'current', initialText = '', initialImage = '', onDelete, onWordSaved,
 }: Props) {
+  const { addWord, words: globalWords } = useWords();
   const [playing, setPlaying]             = useState(false);
   const [storyImage, setStoryImage]       = useState(initialImage);
   const [editingImg, setEditingImg]       = useState(false);
@@ -37,12 +39,10 @@ const StoryContent = memo(function StoryContent({
   const [savingWord, setSavingWord]       = useState<string | null>(null);
   const [tooltip, setTooltip]             = useState<string | null>(null);
 
-  // Load existing saved word names to know which are already saved
+  // Load existing saved word names from global context
   useEffect(() => {
-    api.get('/words').then(r => {
-      setSavedWords(new Set(r.data.map((w: { word: string }) => w.word.toLowerCase())));
-    }).catch(() => {});
-  }, []);
+    setSavedWords(new Set(globalWords.map(w => w.word.toLowerCase())));
+  }, [globalWords]);
 
   const handleWordClick = useCallback(async (word: string) => {
     const key = word.toLowerCase();
@@ -50,8 +50,10 @@ const StoryContent = memo(function StoryContent({
     setSavingWord(key);
     try {
       // Generate word with AI (meaning + examples + image)
-      await api.post('/words/generate', { word });
+      const { data } = await api.post('/words/generate', { word });
       setSavedWords(prev => new Set([...prev, key]));
+      // Add to global context so it appears everywhere immediately
+      addWord({ id: data._id, badge: 'COMMON', word: data.word, translation: data.meaning || '', pronunciation: data.audioUrl || '', image: data.image || '', examples: data.examples || {}, translations: data.translations || {} });
       setTooltip(key);
       setTimeout(() => setTooltip(null), 2000);
       onWordSaved?.(word);

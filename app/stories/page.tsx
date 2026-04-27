@@ -1,13 +1,14 @@
 'use client';
 import { memo, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Trash2 } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import StoryContent from '@/components/stories/StoryContent';
 import StoryInsights from '@/components/stories/StoryInsights';
 import HighlightedWords from '@/components/stories/HighlightedWords';
 import KeepMomentumCard from '@/components/stories/KeepMomentumCard';
 import GenerateStoryModal from '@/components/stories/GenerateStoryModal';
+import ConfirmModal from '@/components/shared/ConfirmModal';
 import api from '@/lib/api';
 
 interface Story { _id: string; storyText: string; image?: string; }
@@ -62,6 +63,27 @@ const StoriesPage = memo(function StoriesPage() {
     });
   }, []);
 
+  const handleDeleteWord = useCallback((word: string) => {
+    setStorySavedWords(prev => prev.filter(w => w.word.toLowerCase() !== word.toLowerCase()));
+  }, []);
+
+  const [confirmStoryId, setConfirmStoryId] = useState<string | null>(null);
+  const [deletingStory, setDeletingStory]   = useState(false);
+  const [confirmWord, setConfirmWord]       = useState<string | null>(null);
+
+  const handleDeleteStory = useCallback(async () => {
+    if (!confirmStoryId) return;
+    setDeletingStory(true);
+    try {
+      await api.delete(`/stories/${confirmStoryId}`);
+      setStories(prev => {
+        const next = prev.filter(s => s._id !== confirmStoryId);
+        if (current?._id === confirmStoryId) { setCurrent(next[0] ?? null); setStorySavedWords([]); }
+        return next;
+      });
+    } finally { setDeletingStory(false); setConfirmStoryId(null); }
+  }, [confirmStoryId, current]);
+
   return (
     <AppLayout>
       <div className="min-h-screen flex flex-col">
@@ -92,17 +114,24 @@ const StoriesPage = memo(function StoriesPage() {
           {stories.length > 1 && (
             <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
               {stories.map((s, i) => (
-                <button
-                  key={s._id}
-                  onClick={() => setCurrent(s)}
-                  className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    current?._id === s._id
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'bg-[var(--card)] border border-[var(--border)] text-[var(--text2)] hover:border-[var(--primary)]'
-                  }`}
-                >
-                  Story {i + 1}
-                </button>
+                <div key={s._id} className="shrink-0 flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrent(s)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      current?._id === s._id
+                        ? 'bg-[var(--primary)] text-white'
+                        : 'bg-[var(--card)] border border-[var(--border)] text-[var(--text2)] hover:border-[var(--primary)]'
+                    }`}
+                  >
+                    Story {i + 1}
+                  </button>
+                  <button
+                    onClick={() => setConfirmStoryId(s._id)}
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-red-500/10 hover:text-red-500 transition-all"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -125,7 +154,7 @@ const StoriesPage = memo(function StoriesPage() {
                 <StoryInsights />
               </motion.div>
               <div className="space-y-5">
-                <HighlightedWords savedWords={storySavedWords} />
+                <HighlightedWords savedWords={storySavedWords} onDelete={setConfirmWord} />
                 <KeepMomentumCard />
               </div>
             </div>
@@ -148,6 +177,21 @@ const StoriesPage = memo(function StoriesPage() {
           </div>
         </footer>
         <GenerateStoryModal open={genModal} onClose={() => setGenModal(false)} onGenerated={handleGenerated} />
+        <ConfirmModal
+          open={!!confirmStoryId}
+          title="Delete this story?"
+          message="This story will be permanently deleted and cannot be recovered."
+          onConfirm={handleDeleteStory}
+          onCancel={() => setConfirmStoryId(null)}
+          loading={deletingStory}
+        />
+        <ConfirmModal
+          open={!!confirmWord}
+          title="Remove this word?"
+          message={`"${confirmWord}" will be removed from your story words list.`}
+          onConfirm={() => { handleDeleteWord(confirmWord!); setConfirmWord(null); }}
+          onCancel={() => setConfirmWord(null)}
+        />
       </div>
     </AppLayout>
   );

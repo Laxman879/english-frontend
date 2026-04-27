@@ -189,6 +189,44 @@ const Home = memo(function Home() {
                 )}
               </motion.div>
 
+              {/* Playlists Section — visible on mobile/tablet, hidden on lg (shown in sidebar) */}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden lg:hidden">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[var(--fire-soft)] flex items-center justify-center"><ListMusic className="w-3.5 h-3.5 text-[var(--fire)]" /></div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[var(--text)]">Playlists</h3>
+                      <p className="text-[10px] text-[var(--muted)]">{playlists.length} playlists</p>
+                    </div>
+                  </div>
+                  <button onClick={() => router.push('/playlists')} className="flex items-center gap-1 text-xs font-bold text-[var(--primary)] hover:gap-2 transition-all">
+                    View all <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {playlists.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <p className="text-sm text-[var(--muted)] mb-3">No playlists yet</p>
+                    <button onClick={() => router.push('/playlists')} className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-fg)] rounded-xl text-xs font-bold hover:opacity-90">Create Playlist</button>
+                  </div>
+                ) : (
+                  <div className="p-3 space-y-2">
+                    {playlists.map((pl, i) => (
+                      <motion.div key={pl._id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                        onClick={() => router.push('/playlists')}
+                        className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--card2)] transition-colors cursor-pointer border border-transparent hover:border-[var(--border)]">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-[var(--card2)] shrink-0">
+                          {pl.image ? <img src={pl.image} alt={pl.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><ListMusic className="w-5 h-5 text-[var(--fire)]" /></div>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-[var(--text)] truncate">{pl.name}</p>
+                          <p className="text-[10px] text-[var(--muted)]">{Array.isArray(pl.items) ? pl.items.length : 0} words</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+
               {/* Stories Section */}
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">

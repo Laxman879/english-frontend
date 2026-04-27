@@ -1,44 +1,39 @@
 'use client';
 import { memo, useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, BookMarked, Trash2, Sparkles, ListMusic, CheckSquare, Square, LayoutGrid, List } from 'lucide-react';
+import { Search, Plus, BookMarked, Trash2, Sparkles, ListMusic, CheckSquare, Square, LayoutGrid, List, Camera } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import WordCard, { type Word } from '@/components/saved/WordCard';
+import WordCard from '@/components/saved/WordCard';
 import MasteredBanner from '@/components/saved/MasteredBanner';
 import ProTipCard from '@/components/saved/ProTipCard';
 import AddWordModal from '@/components/saved/AddWordModal';
 import WordDetailModal from '@/components/saved/WordDetailModal';
 import ConfirmModal from '@/components/shared/ConfirmModal';
+import ImageUploader from '@/components/shared/ImageUploader';
+import { useWords, type Word } from '@/lib/WordsContext';
 import api from '@/lib/api';
 
 const SavedWords = memo(function SavedWords() {
   const router = useRouter();
-  const [words, setWords]             = useState<Word[]>([]);
-  const [loading, setLoading]         = useState(true);
-  const [search, setSearch]           = useState('');
-  const [modalOpen, setModalOpen]     = useState(false);
-  const [detailWord, setDetailWord]   = useState<Word | null>(null);
-  const [selectMode, setSelectMode]   = useState(false);
-  const [viewMode, setViewMode]       = useState<'grid' | 'list'>('grid');
-  const [selected, setSelected]       = useState<Set<string>>(new Set());
+  const { words, loading, addWord, updateWord, deleteWord, deleteWords } = useWords();
+
+  const [search, setSearch]             = useState('');
+  const [modalOpen, setModalOpen]       = useState(false);
+  const [detailWord, setDetailWord]     = useState<Word | null>(null);
+  const [selectMode, setSelectMode]     = useState(false);
+  const [viewMode, setViewMode]         = useState<'grid' | 'list'>('grid');
+  const [selected, setSelected]         = useState<Set<string>>(new Set());
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
-  const [playlists, setPlaylists]     = useState<{ id: string; title: string }[]>([]);
+  const [playlists, setPlaylists]       = useState<{ id: string; title: string }[]>([]);
   const [playlistModal, setPlaylistModal] = useState(false);
   const [addingToPlaylist, setAddingToPlaylist] = useState(false);
   const [generatingStory, setGeneratingStory] = useState(false);
+  const [imgEditId, setImgEditId]       = useState<string | null>(null);
+  const [confirmListDeleteId, setConfirmListDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get('/words').then(r => {
-      setWords(r.data.map((w: Record<string, unknown>) => ({
-        id: w._id, badge: 'COMMON', word: w.word,
-        translation: w.meaning || '', pronunciation: (w.audioUrl as string) || '',
-        image: (w.image as string) || '',
-        examples: w.examples || {},
-        translations: w.translations || {},
-      })));
-    }).finally(() => setLoading(false));
     api.get('/playlists').then(r => {
       setPlaylists(r.data.map((p: Record<string, string>) => ({ id: p._id, title: p.name })));
     });
@@ -51,48 +46,39 @@ const SavedWords = memo(function SavedWords() {
     ), [words, search]);
 
   const toggleSelect = useCallback((id: string) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }, []);
 
   const toggleSelectAll = useCallback(() => {
-    if (selected.size === filtered.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(filtered.map(w => w.id)));
-    }
+    setSelected(selected.size === filtered.length ? new Set() : new Set(filtered.map(w => w.id)));
   }, [selected, filtered]);
 
-  const exitSelectMode = useCallback(() => {
-    setSelectMode(false);
-    setSelected(new Set());
-  }, []);
+  const exitSelectMode = useCallback(() => { setSelectMode(false); setSelected(new Set()); }, []);
 
   const handleDelete = useCallback((id: string) => {
-    setWords(prev => prev.filter(w => w.id !== id));
+    deleteWord(id);
     setDetailWord(null);
-  }, []);
+  }, [deleteWord]);
 
   const handleUpdate = useCallback((updated: Word) => {
-    setWords(prev => prev.map(w => w.id === updated.id ? updated : w));
+    updateWord(updated);
     setDetailWord(updated);
-  }, []);
+  }, [updateWord]);
+
+  const handleUpdateImage = useCallback(async (wordId: string, url: string) => {
+    await api.put(`/words/${wordId}`, { image: url });
+    updateWord({ ...words.find(w => w.id === wordId)!, image: url });
+    setImgEditId(null);
+  }, [words, updateWord]);
 
   const handleBulkDelete = useCallback(async () => {
     setBulkDeleting(true);
     try {
       await Promise.all([...selected].map(id => api.delete(`/words/${id}`)));
-      setWords(prev => prev.filter(w => !selected.has(w.id)));
-      setSelected(new Set());
-      setConfirmBulkDelete(false);
-      setSelectMode(false);
-    } finally {
-      setBulkDeleting(false);
-    }
-  }, [selected]);
+      deleteWords([...selected]);
+      setSelected(new Set()); setConfirmBulkDelete(false); setSelectMode(false);
+    } finally { setBulkDeleting(false); }
+  }, [selected, deleteWords]);
 
   const handleGenerateStory = useCallback(async () => {
     const selectedWords = words.filter(w => selected.has(w.id)).map(w => w.word);
@@ -100,46 +86,29 @@ const SavedWords = memo(function SavedWords() {
     setGeneratingStory(true);
     try {
       await api.post('/stories/generate', { words: selectedWords });
-      exitSelectMode();
-      router.push('/stories');
-    } finally {
-      setGeneratingStory(false);
-    }
+      exitSelectMode(); router.push('/stories');
+    } finally { setGeneratingStory(false); }
   }, [selected, words, router, exitSelectMode]);
 
   const handleAddToPlaylist = useCallback(async (playlistId: string) => {
     setAddingToPlaylist(true);
     try {
-      await Promise.all(
-        [...selected].map(wordId =>
-          api.put(`/playlists/${playlistId}/add-item`, { type: 'word', refId: wordId })
-        )
-      );
-      setPlaylistModal(false);
-      exitSelectMode();
-    } finally {
-      setAddingToPlaylist(false);
-    }
+      await Promise.all([...selected].map(wordId => api.put(`/playlists/${playlistId}/add-item`, { type: 'word', refId: wordId })));
+      setPlaylistModal(false); exitSelectMode();
+    } finally { setAddingToPlaylist(false); }
   }, [selected, exitSelectMode]);
-
-  const handleAdd = useCallback((newWord: Word) => {
-    setWords(prev => [newWord, ...prev]);
-  }, []);
 
   return (
     <AppLayout>
       <div className="min-h-screen bg-[var(--bg)]">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
 
-          {/* Header */}
           <div className="flex flex-col gap-3 sm:gap-4 mb-5 sm:mb-8">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted)] mb-1">Vocabulary Vault</p>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[var(--text)] mb-1 sm:mb-2">Saved Words</h1>
-                <p className="text-xs sm:text-sm text-[var(--text2)] max-w-sm">
-                  Review your curated collection of terms and phrases.
-                </p>
+                <p className="text-xs sm:text-sm text-[var(--text2)] max-w-sm">Review your curated collection of terms and phrases.</p>
               </motion.div>
               <div className="flex items-center gap-2 self-start sm:self-auto">
                 <div className="flex items-center gap-2 px-3 py-2 bg-[var(--card)] border border-[var(--border)] rounded-2xl">
@@ -150,15 +119,11 @@ const SavedWords = memo(function SavedWords() {
               </div>
             </div>
 
-            {/* Search + actions */}
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               <div className="relative flex-1 min-w-[160px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
-                <input
-                  type="text" placeholder="Search words..."
-                  value={search} onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-[var(--input-bg)] border border-[var(--border)] rounded-2xl text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)] transition-all"
-                />
+                <input type="text" placeholder="Search words..." value={search} onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-[var(--input-bg)] border border-[var(--border)] rounded-2xl text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)] transition-all" />
               </div>
               {!selectMode ? (
                 <>
@@ -166,25 +131,19 @@ const SavedWords = memo(function SavedWords() {
                     className="flex items-center gap-1.5 px-3 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-2xl text-sm font-semibold text-[var(--text2)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shrink-0">
                     <CheckSquare className="w-4 h-4" /> Select
                   </button>
-                  {/* View toggle */}
                   <div className="flex items-center bg-[var(--card)] border border-[var(--border)] rounded-2xl p-1 shrink-0">
                     <button onClick={() => setViewMode('grid')}
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
-                        viewMode === 'grid' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)] hover:text-[var(--text)]'
-                      }`}>
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
                       <LayoutGrid className="w-4 h-4" />
                     </button>
                     <button onClick={() => setViewMode('list')}
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
-                        viewMode === 'list' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)] hover:text-[var(--text)]'
-                      }`}>
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${viewMode === 'list' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
                       <List className="w-4 h-4" />
                     </button>
                   </div>
                   <button onClick={() => setModalOpen(true)}
                     className="flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-[var(--primary-fg)] rounded-2xl text-sm font-bold hover:opacity-90 active:scale-[0.98] transition-all shrink-0">
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Add Word</span>
+                    <Plus className="w-4 h-4" /><span className="hidden sm:inline">Add Word</span>
                   </button>
                 </>
               ) : (
@@ -200,33 +159,21 @@ const SavedWords = memo(function SavedWords() {
               )}
             </div>
 
-            {/* Selection action bar */}
             <AnimatePresence>
               {selectMode && selected.size > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                  className="flex items-center gap-2 flex-wrap p-3 bg-[var(--card)] border border-[var(--border)] rounded-2xl"
-                >
+                <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                  className="flex items-center gap-2 flex-wrap p-3 bg-[var(--card)] border border-[var(--border)] rounded-2xl">
                   <span className="text-xs font-bold text-[var(--primary)] mr-1">{selected.size} selected</span>
-                  <button
-                    onClick={handleGenerateStory}
-                    disabled={generatingStory}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-[var(--primary)] text-white rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-60 transition-all"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    {generatingStory ? 'Generating…' : 'Generate Story'}
+                  <button onClick={handleGenerateStory} disabled={generatingStory}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-[var(--primary)] text-white rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-60 transition-all">
+                    <Sparkles className="w-3.5 h-3.5" />{generatingStory ? 'Generating…' : 'Generate Story'}
                   </button>
-                  <button
-                    onClick={() => setPlaylistModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-[var(--blue-soft)] text-[var(--blue)] rounded-xl text-xs font-bold hover:opacity-90 transition-all"
-                  >
-                    <ListMusic className="w-3.5 h-3.5" />
-                    Add to Playlist
+                  <button onClick={() => setPlaylistModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-[var(--blue-soft)] text-[var(--blue)] rounded-xl text-xs font-bold hover:opacity-90 transition-all">
+                    <ListMusic className="w-3.5 h-3.5" />Add to Playlist
                   </button>
-                  <button
-                    onClick={() => setConfirmBulkDelete(true)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold hover:bg-red-500/20 transition-all ml-auto"
-                  >
+                  <button onClick={() => setConfirmBulkDelete(true)}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold hover:bg-red-500/20 transition-all ml-auto">
                     <Trash2 className="w-3.5 h-3.5" /> Delete
                   </button>
                 </motion.div>
@@ -261,56 +208,66 @@ const SavedWords = memo(function SavedWords() {
                       </AnimatePresence>
                     </motion.div>
                   ) : (
-                    /* List view */
                     <motion.div key="list" className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden">
                       {filtered.map((word, i) => {
                         const teluguMeaning = word.translations?.['telugu'] || word.translations?.['hindi'] ||
                           (word.translations ? Object.values(word.translations)[0] : '') || '';
                         const isSelected = selected.has(word.id);
                         return (
-                          <motion.div key={word.id}
-                            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.03 }}
-                            className={`flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] last:border-0 hover:bg-[var(--card2)] transition-colors cursor-pointer ${
-                              selectMode && isSelected ? 'bg-[var(--primary-soft)]' : ''
-                            }`}
-                            onClick={() => selectMode ? toggleSelect(word.id) : setDetailWord(word)}
-                          >
-                            {/* Checkbox */}
-                            {selectMode && (
-                              <div className="shrink-0">
-                                {isSelected
-                                  ? <CheckSquare className="w-5 h-5 text-[var(--primary)]" />
-                                  : <Square className="w-5 h-5 text-[var(--muted)]" />}
+                          <motion.div key={word.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}>
+                            <div
+                              className={`flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] hover:bg-[var(--card2)] transition-colors cursor-pointer group ${selectMode && isSelected ? 'bg-[var(--primary-soft)]' : ''}`}
+                              onClick={() => selectMode ? toggleSelect(word.id) : setDetailWord(word)}
+                            >
+                              {selectMode && (
+                                <div className="shrink-0">
+                                  {isSelected ? <CheckSquare className="w-5 h-5 text-[var(--primary)]" /> : <Square className="w-5 h-5 text-[var(--muted)]" />}
+                                </div>
+                              )}
+                              <div className="w-10 h-10 rounded-xl bg-[var(--card2)] shrink-0 overflow-hidden">
+                                {word.image
+                                  ? <img src={word.image} alt={word.word} className="w-full h-full object-cover" />
+                                  : <div className="w-full h-full flex items-center justify-center text-lg">📖</div>
+                                }
                               </div>
-                            )}
-                            {/* Image */}
-                            <div className="w-10 h-10 rounded-xl bg-[var(--card2)] shrink-0 overflow-hidden">
-                              {word.image
-                                ? <img src={word.image} alt={word.word} className="w-full h-full object-cover" />
-                                : <div className="w-full h-full flex items-center justify-center text-lg">📖</div>
-                              }
-                            </div>
-                            {/* Word info */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-extrabold text-[var(--text)]">{word.word}</span>
-                                <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-[var(--primary-soft)] text-[var(--primary)]">{word.badge}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-extrabold text-[var(--text)]">{word.word}</span>
+                                  <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-[var(--primary-soft)] text-[var(--primary)]">{word.badge}</span>
+                                </div>
+                                <p className="text-xs text-[var(--text2)] truncate">{word.translation}</p>
+                                {teluguMeaning && <p className="text-xs text-[var(--primary)] font-medium truncate">{teluguMeaning}</p>}
                               </div>
-                              <p className="text-xs text-[var(--text2)] truncate">{word.translation}</p>
-                              {teluguMeaning && (
-                                <p className="text-xs text-[var(--primary)] font-medium truncate">{teluguMeaning}</p>
+                              {selectMode ? (
+                                <span className="text-[var(--muted)] text-xs shrink-0">›</span>
+                              ) : (
+                                <div className="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
+                                  <button
+                                    onClick={e => { e.stopPropagation(); setImgEditId(imgEditId === word.id ? null : word.id); }}
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-all">
+                                    <Camera className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={e => { e.stopPropagation(); setConfirmListDeleteId(word.id); }}
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--muted)] hover:bg-red-500/10 hover:text-red-500 transition-all">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               )}
                             </div>
-                            {/* Arrow */}
-                            <span className="text-[var(--muted)] text-xs shrink-0">›</span>
+                            {imgEditId === word.id && (
+                              <div onClick={e => e.stopPropagation()}>
+                                <ImageUploader onSave={(url) => handleUpdateImage(word.id, url)} onCancel={() => setImgEditId(null)} />
+                              </div>
+                            )}
                           </motion.div>
                         );
                       })}
                     </motion.div>
                   )
                 ) : (
-                  <motion.div key="empty" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-16 text-center">
+                  <motion.div key="empty" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    className="flex flex-col items-center justify-center py-16 text-center">
                     <div className="w-14 h-14 rounded-2xl bg-[var(--card2)] flex items-center justify-center mb-4">
                       <BookMarked className="w-6 h-6 text-[var(--muted)]" />
                     </div>
@@ -333,16 +290,17 @@ const SavedWords = memo(function SavedWords() {
         </div>
       </div>
 
-      <AddWordModal open={modalOpen} onClose={() => setModalOpen(false)} onAdd={handleAdd} />
+      <AddWordModal open={modalOpen} onClose={() => setModalOpen(false)} onAdd={addWord} />
+      <WordDetailModal word={detailWord} onClose={() => setDetailWord(null)} onUpdate={handleUpdate} onDelete={handleDelete} />
 
-      <WordDetailModal
-        word={detailWord}
-        onClose={() => setDetailWord(null)}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
+      <ConfirmModal
+        open={!!confirmListDeleteId}
+        title="Delete this word?"
+        message={`"${words.find(w => w.id === confirmListDeleteId)?.word ?? ''}" will be permanently removed from your vocabulary vault.`}
+        onConfirm={async () => { await api.delete(`/words/${confirmListDeleteId}`); handleDelete(confirmListDeleteId!); setConfirmListDeleteId(null); }}
+        onCancel={() => setConfirmListDeleteId(null)}
       />
 
-      {/* Bulk delete confirm */}
       <ConfirmModal
         open={confirmBulkDelete}
         title={`Delete ${selected.size} word${selected.size > 1 ? 's' : ''}?`}
@@ -352,7 +310,6 @@ const SavedWords = memo(function SavedWords() {
         loading={bulkDeleting}
       />
 
-      {/* Add to playlist modal */}
       <AnimatePresence>
         {playlistModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -360,8 +317,7 @@ const SavedWords = memo(function SavedWords() {
               className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setPlaylistModal(false)} />
             <motion.div initial={{ opacity: 0, scale: 0.93, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.93, y: 16 }} transition={{ duration: 0.22 }}
-              className="relative bg-[var(--card)] rounded-3xl shadow-2xl p-6 w-full max-w-sm mx-4 z-10"
-            >
+              className="relative bg-[var(--card)] rounded-3xl shadow-2xl p-6 w-full max-w-sm mx-4 z-10">
               <h2 className="text-lg font-extrabold text-[var(--text)] mb-1">Add to Playlist</h2>
               <p className="text-xs text-[var(--muted)] mb-4">{selected.size} word{selected.size > 1 ? 's' : ''} will be added</p>
               {playlists.length === 0 ? (
@@ -369,12 +325,8 @@ const SavedWords = memo(function SavedWords() {
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {playlists.map(pl => (
-                    <button
-                      key={pl.id}
-                      onClick={() => handleAddToPlaylist(pl.id)}
-                      disabled={addingToPlaylist}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--primary-soft)] transition-all text-left disabled:opacity-60"
-                    >
+                    <button key={pl.id} onClick={() => handleAddToPlaylist(pl.id)} disabled={addingToPlaylist}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--primary-soft)] transition-all text-left disabled:opacity-60">
                       <ListMusic className="w-4 h-4 text-[var(--primary)] shrink-0" />
                       <span className="text-sm font-semibold text-[var(--text)]">{pl.title}</span>
                     </button>

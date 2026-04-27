@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Sparkles } from 'lucide-react';
 import api from '@/lib/api';
 import { type Word } from './WordCard';
+import { useWords } from '@/lib/WordsContext';
 
 const BADGES = ['COMMON', 'VERB', 'IDIOM', 'PHRASE', 'LEVEL B2', 'LEVEL C1'];
 
@@ -19,6 +20,7 @@ const empty = {
 };
 
 const AddWordModal = memo(function AddWordModal({ open, onClose, onAdd }: AddWordModalProps) {
+  const { addWord } = useWords();
   const [form, setForm]       = useState(empty);
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [saving, setSaving]   = useState(false);
@@ -76,7 +78,7 @@ const AddWordModal = memo(function AddWordModal({ open, onClose, onAdd }: AddWor
         image: form.image.trim(),
         examples: { past: form.past, present: form.present, future: form.future },
       });
-      onAdd({
+      const newWord: Word = {
         id: data._id,
         badge: form.badge,
         word: data.word,
@@ -84,7 +86,10 @@ const AddWordModal = memo(function AddWordModal({ open, onClose, onAdd }: AddWor
         pronunciation: data.audioUrl || '',
         image: data.image || '',
         examples: data.examples,
-      });
+        translations: data.translations || {},
+      };
+      addWord(newWord);
+      onAdd(newWord);
       onClose();
     } finally {
       setSaving(false);
