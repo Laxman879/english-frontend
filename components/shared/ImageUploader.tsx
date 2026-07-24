@@ -1,7 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import { Check, X, Link, Upload } from 'lucide-react';
-import api from '@/lib/api';
+import { fileToCompressedDataUrl } from '@/lib/image';
 
 interface Props {
   onSave: (url: string) => Promise<void>;
@@ -19,15 +19,11 @@ export default function ImageUploader({ onSave, onCancel }: Props) {
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPreview(URL.createObjectURL(file));
     setUploading(true);
     try {
-      const form = new FormData();
-      form.append('image', file);
-      const { data } = await api.post('/upload', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setUrlInput(data.url);
+      const dataUrl = await fileToCompressedDataUrl(file);
+      setPreview(dataUrl);
+      setUrlInput(dataUrl);
     } finally {
       setUploading(false);
     }

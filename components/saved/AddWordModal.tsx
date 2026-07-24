@@ -1,10 +1,11 @@
 'use client';
-import { memo, useState, useCallback, useEffect } from 'react';
+import { memo, useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Sparkles } from 'lucide-react';
+import { X, Plus, Sparkles, Upload, ImageIcon, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import { type Word } from './WordCard';
 import { useWords } from '@/lib/WordsContext';
+import { fileToCompressedDataUrl } from '@/lib/image';
 
 const BADGES = ['COMMON', 'VERB', 'IDIOM', 'PHRASE', 'LEVEL B2', 'LEVEL C1'];
 
@@ -25,6 +26,24 @@ const AddWordModal = memo(function AddWordModal({ open, onClose, onAdd }: AddWor
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [saving, setSaving]   = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [imgLoading, setImgLoading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleLocalImage = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImgLoading(true);
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file);
+      setForm(prev => ({ ...prev, image: dataUrl }));
+      setErrors(prev => ({ ...prev, image: '' }));
+    } catch {
+      setErrors(prev => ({ ...prev, image: 'Could not load that image.' }));
+    } finally {
+      setImgLoading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -185,11 +204,46 @@ const AddWordModal = memo(function AddWordModal({ open, onClose, onAdd }: AddWor
                 </div>
               </div>
 
-              {/* Image URL */}
+              {/* Image */}
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] block mb-1.5">Image URL <span className="normal-case font-normal">(optional)</span></label>
-                <input type="text" value={form.image} onChange={e => set('image', e.target.value)}
-                  placeholder="https://…" className={inputCls('image')} />
+                <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] block mb-1.5">Image <span className="normal-case font-normal">(optional)</span></label>
+
+                {/* Preview */}
+                {form.image ? (
+                  <div className="relative mb-2 rounded-xl overflow-hidden border border-[var(--border)]">
+                    <img src={form.image} alt="preview" className="w-full h-32 object-cover" />
+                    <button onClick={() => set('image', '')}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors">
+                      <X className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mb-2 h-20 rounded-xl border-2 border-dashed border-[var(--border)] flex items-center justify-center gap-2 text-[var(--muted)]">
+                    <ImageIcon className="w-4 h-4" />
+                    <span className="text-[11px]">No image · will be AI-generated if left empty</span>
+                  </div>
+                )}
+
+                {/* Upload from device + URL */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    disabled={imgLoading}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-[var(--primary-soft)] text-[var(--primary)] rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-50 shrink-0 transition-all"
+                  >
+                    {imgLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    {imgLoading ? 'Loading…' : 'Upload from device'}
+                  </button>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleLocalImage} />
+                  <input
+                    type="text"
+                    value={form.image.startsWith('data:') ? '' : form.image}
+                    onChange={e => set('image', e.target.value)}
+                    placeholder="…or paste an image URL"
+                    className={inputCls('image') + ' flex-1'}
+                  />
+                </div>
+                {errors.image && <p className="text-[10px] text-red-500 mt-1">{errors.image}</p>}
               </div>
             </div>
 
