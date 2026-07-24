@@ -74,10 +74,10 @@ export default memo(function SettingsPage() {
     const initial = {
       displayName:    user.name || '',
       email:          user.email || '',
-      selectedLang:   (user as Record<string, unknown>).preferredLanguage as string || 'Hindi',
-      reminders:      ((user as Record<string, unknown>).reminderFrequency as string || 'none') !== 'none',
-      reminderTime:   (user as Record<string, unknown>).reminderTime as string || '08:00 AM',
-      reminderRepeat: (user as Record<string, unknown>).reminderRepeat as string || 'daily',
+      selectedLang:   (user as unknown as Record<string, unknown>).preferredLanguage as string || 'Hindi',
+      reminders:      ((user as unknown as Record<string, unknown>).reminderFrequency as string || 'none') !== 'none',
+      reminderTime:   (user as unknown as Record<string, unknown>).reminderTime as string || '08:00 AM',
+      reminderRepeat: (user as unknown as Record<string, unknown>).reminderRepeat as string || 'daily',
     };
     setDisplayName(initial.displayName as string);
     setEmail(initial.email as string);
@@ -164,8 +164,8 @@ export default memo(function SettingsPage() {
                 </div>
                 <div className="flex items-center gap-4 mb-5">
                   <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[var(--primary-soft)] flex items-center justify-center shrink-0">
-                    {(user as Record<string, unknown>)?.avatarUrl
-                      ? <Image src={(user as Record<string, unknown>).avatarUrl as string} alt={user?.name || ''} width={64} height={64} className="w-full h-full object-cover" />
+                    {(user as unknown as Record<string, unknown>)?.avatarUrl
+                      ? <Image src={(user as unknown as Record<string, unknown>).avatarUrl as string} alt={user?.name || ''} width={64} height={64} className="w-full h-full object-cover" />
                       : <span className="text-2xl font-extrabold text-[var(--primary)]">{user?.name?.charAt(0).toUpperCase() || 'U'}</span>
                     }
                   </div>

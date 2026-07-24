@@ -11,7 +11,7 @@ import { ReactNode } from 'react';
 
 function MuiWrapper({ children }: { children: ReactNode }) {
   const { theme } = useTheme();
-  const muiTheme = theme === 'dark' ? darkTheme : theme === 'red' ? redTheme : lightTheme;
+  const muiTheme = theme === 'dark' ? darkTheme : theme === 'golden' ? redTheme : lightTheme;
   return (
     <MuiThemeProvider theme={muiTheme}>
       <CssBaseline />
