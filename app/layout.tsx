@@ -2,13 +2,22 @@ import './globals.css';
 import Providers from '@/components/Providers';
 import EmotionRegistry from '@/components/EmotionRegistry';
 import { ReactNode } from 'react';
+import type { Viewport } from 'next';
 import { Poppins, Roboto, Noto_Sans_Telugu } from 'next/font/google';
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['600', '700', '800'], variable: '--font-poppins', display: 'swap' });
 const roboto = Roboto({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-roboto', display: 'swap' });
 const notoSansTelugu = Noto_Sans_Telugu({ subsets: ['telugu'], weight: ['400', '600', '700'], variable: '--font-telugu', display: 'swap' });
 
-export const metadata = { title: 'English Learning App', description: 'Learn English effectively' };
+export const metadata = {
+  title: 'Polyglot Punch — English Learning',
+  description: 'Learn English effectively',
+  appleWebApp: { capable: true, title: 'Polyglot Punch', statusBarStyle: 'black-translucent' as const },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#16a34a',
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
