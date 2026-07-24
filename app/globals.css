@@ -73,4 +73,3 @@ input,textarea{-webkit-tap-highlight-color:transparent}
 [data-theme="dark"] .MuiMenuItem-root:hover,[data-theme="golden"] .MuiMenuItem-root:hover{background:var(--card2)!important}
 [data-theme="dark"] .MuiToggleButton-root,[data-theme="golden"] .MuiToggleButton-root{color:var(--text2)!important;border-color:var(--border)!important}
 [data-theme="dark"] .MuiToggleButton-root.Mui-selected,[data-theme="golden"] .MuiToggleButton-root.Mui-selected{background:var(--primary-soft)!important;color:var(--primary)!important}
-[data-theme="dark"] nav,[data-theme="golden"] nav{background:var(--nav)!important;border-color:var(--border)!important}
