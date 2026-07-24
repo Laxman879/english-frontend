@@ -24,6 +24,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning
       className={`${poppins.variable} ${roboto.variable} ${notoSansTelugu.variable}`}>
       <body>
+        {/* Apply saved theme before render so dark/golden never flashes to light. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('app-theme');if(t){document.documentElement.setAttribute('data-theme',t)}}catch(e){}`,
+          }}
+        />
         <EmotionRegistry>
           <Providers>{children}</Providers>
         </EmotionRegistry>
