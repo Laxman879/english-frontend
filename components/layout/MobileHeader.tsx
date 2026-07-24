@@ -83,99 +83,96 @@ const MobileHeader = memo(function MobileHeader() {
 
   return (
     <div className="lg:hidden">
-      {/* ── Fixed Top bar ── */}
+      {/* ── Fixed Top bar (two rows) ── */}
       <div className="glass fixed top-0 left-0 right-0 z-40 border-b border-[var(--border)] bg-[var(--nav)]">
-        <div className="flex items-center gap-3 px-4 py-3">
+        <div className="px-3 pt-2.5 pb-2.5 space-y-2">
 
-          {/* Hamburger */}
-          <motion.button
-            onClick={toggle}
-            whileTap={{ scale: 0.92 }}
-            className="w-10 h-10 shrink-0 rounded-2xl bg-[var(--card2)] border border-[var(--border)] flex items-center justify-center hover:bg-[var(--border)] transition-colors"
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {open ? (
-                <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                  <X className="w-4 h-4 text-[var(--text)]" />
-                </motion.span>
-              ) : (
-                <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                  <Menu className="w-4 h-4 text-[var(--text)]" />
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
+          {/* Row 1 — menu · logo · streak */}
+          <div className="flex items-center gap-2.5">
+            {/* Hamburger */}
+            <motion.button
+              onClick={toggle}
+              whileTap={{ scale: 0.92 }}
+              className="w-10 h-10 shrink-0 rounded-2xl bg-[var(--card2)] border border-[var(--border)] flex items-center justify-center hover:bg-[var(--border)] transition-colors"
+              aria-label="Open menu"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {open ? (
+                  <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <X className="w-4 h-4 text-[var(--text)]" />
+                  </motion.span>
+                ) : (
+                  <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Menu className="w-4 h-4 text-[var(--text)]" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
 
-          {/* Logo — collapses when search is focused */}
-          <AnimatePresence initial={false}>
-            {!searchFocused && (
-              <motion.div
-                key="logo"
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: 'auto' }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.2 }}
-                className="flex items-center gap-2.5 overflow-hidden shrink-0"
-              >
-                <div className="w-8 h-8 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-[0_2px_8px_var(--primary-soft)]">
-                  <Zap className="w-4 h-4 text-[var(--primary-fg)]" />
-                </div>
-                <div className="whitespace-nowrap">
-                  <p className="text-sm font-extrabold text-[var(--text)] leading-none tracking-tight">Polyglot Punch</p>
-                  <p className="text-[10px] text-[var(--muted)] leading-none mt-0.5">Mastering Momentum</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            {/* Logo */}
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <div className="w-8 h-8 shrink-0 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-[0_2px_8px_var(--primary-soft)]">
+                <Zap className="w-4 h-4 text-[var(--primary-fg)]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-extrabold text-[var(--text)] leading-none tracking-tight truncate">Polyglot Punch</p>
+                <p className="text-[10px] text-[var(--muted)] leading-none mt-0.5 truncate">Mastering Momentum</p>
+              </div>
+            </div>
 
-          {/* Search */}
-          <div className={`flex-1 flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border-2 transition-all duration-200 ${
-            searchFocused
-              ? 'bg-[var(--input-bg)] border-[var(--primary)] shadow-[0_0_0_4px_var(--primary-soft)]'
-              : 'bg-[var(--card2)] border-[var(--border)] hover:border-[var(--text2)]'
-          }`}>
-            <motion.div animate={searchFocused ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.15 }}>
+            {/* Streak badge */}
+            <button
+              onClick={() => router.push('/streak')}
+              className="flex items-center gap-1.5 px-2.5 h-9 rounded-xl bg-[var(--fire-soft)] border border-[var(--fire)]/20 shrink-0 active:scale-95 transition-transform"
+              aria-label="View streak"
+            >
+              <Flame className="w-4 h-4 text-[var(--fire)]" />
+              <span className="text-sm font-extrabold text-[var(--fire)]">{streakCount ?? '—'}</span>
+            </button>
+          </div>
+
+          {/* Row 2 — search · All Words */}
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <div className={`flex-1 min-w-0 flex items-center gap-2.5 px-3.5 h-11 rounded-2xl border-2 transition-all duration-200 ${
+              searchFocused
+                ? 'bg-[var(--input-bg)] border-[var(--primary)] shadow-[0_0_0_4px_var(--primary-soft)]'
+                : 'bg-[var(--card2)] border-[var(--border)]'
+            }`}>
               <Search className={`w-4 h-4 shrink-0 transition-colors duration-200 ${
                 searchFocused ? 'text-[var(--primary)]' : 'text-[var(--muted)]'
               }`} />
-            </motion.div>
-            <input
-              ref={searchRef}
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-              placeholder="Search any word…"
-              className="flex-1 bg-transparent text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none min-w-0"
-            />
-            <AnimatePresence>
-              {searchValue && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.6 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.6 }}
-                  transition={{ duration: 0.15 }}
-                  onMouseDown={() => { setSearchValue(''); searchRef.current?.focus(); }}
-                  className="w-5 h-5 rounded-full bg-[var(--border)] flex items-center justify-center shrink-0 hover:bg-[var(--muted)] transition-colors"
-                >
-                  <X className="w-3 h-3 text-[var(--text2)]" />
-                </motion.button>
-              )}
-            </AnimatePresence>
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                placeholder="Search any word…"
+                className="flex-1 bg-transparent text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none min-w-0"
+              />
+              <AnimatePresence>
+                {searchValue && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.6 }}
+                    transition={{ duration: 0.15 }}
+                    onMouseDown={() => { setSearchValue(''); searchRef.current?.focus(); }}
+                    className="w-5 h-5 rounded-full bg-[var(--border)] flex items-center justify-center shrink-0 hover:bg-[var(--muted)] transition-colors"
+                  >
+                    <X className="w-3 h-3 text-[var(--text2)]" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* All Words dropdown — now clearly visible on its own row */}
+            <div className="shrink-0">
+              <TeluguWordsDropdown />
+            </div>
           </div>
-
-          {/* Telugu Words Dropdown */}
-          <TeluguWordsDropdown />
-
-          {/* Streak badge */}
-          <button
-            onClick={() => router.push('/streak')}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[var(--fire-soft)] border border-[var(--fire)]/20 shrink-0"
-          >
-            <Flame className="w-3.5 h-3.5 text-[var(--fire)]" />
-            <span className="text-xs font-extrabold text-[var(--fire)]">{streakCount ?? '—'}</span>
-          </button>
         </div>
       </div>
 

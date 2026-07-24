@@ -192,7 +192,7 @@ export default function TeluguWordsDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.97 }}
             transition={{ duration: 0.18 }}
-            className="absolute top-full mt-2 right-0 w-80 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow-md)] z-50 overflow-hidden"
+            className="absolute top-full mt-2 right-0 w-80 max-w-[calc(100vw-24px)] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow-md)] z-50 overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">

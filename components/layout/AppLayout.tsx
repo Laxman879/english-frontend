@@ -48,7 +48,7 @@ const AppLayout = memo(function AppLayout({ children }: { children: React.ReactN
 
           <TeluguWordsDropdown />
         </div>
-        <main className="flex-1 min-w-0 pt-[57px] lg:pt-0">
+        <main className="flex-1 min-w-0 pt-[112px] lg:pt-0">
           {children}
         </main>
       </div>
