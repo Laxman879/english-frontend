@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, Sparkles, Globe } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/lib/AuthContext';
+import { API_BASE } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -52,8 +53,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const res = await fetch(`${API}/auth/login`, {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
