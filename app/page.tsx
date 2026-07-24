@@ -3,6 +3,7 @@ import { memo, useMemo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import AppLayout from '@/components/layout/AppLayout';
 import SearchBar from '@/components/home/SearchBar';
+import TranslateBox from '@/components/home/TranslateBox';
 import WordOfTheDay from '@/components/home/WordOfTheDay';
 import ContextSentences from '@/components/home/ContextSentences';
 import MomentumCard from '@/components/home/MomentumCard';
@@ -97,6 +98,9 @@ const Home = memo(function Home() {
             </motion.div>
             <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="w-full">
               <SearchBar />
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }} className="w-full">
+              <TranslateBox />
             </motion.div>
           </div>
 
