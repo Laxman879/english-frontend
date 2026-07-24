@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+// Set NEXT_PUBLIC_API_URL in Vercel to the Render backend, e.g.
+//   https://english-backend.onrender.com/api
+// Falls back to localhost for local dev.
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
 });
 
 api.interceptors.request.use(
