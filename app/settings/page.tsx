@@ -381,7 +381,7 @@ export default memo(function SettingsPage() {
                 Are you sure you want to log out? Your momentum progress is saved!
               </p>
               <button onClick={() => setShowLogoutModal(false)}
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-[var(--primary)] text-white rounded-full text-sm font-bold hover:opacity-90 transition-opacity mb-3">
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-[var(--primary)] text-[var(--primary-fg)] rounded-full text-sm font-bold hover:opacity-90 transition-opacity mb-3">
                 <CheckCircle className="w-4 h-4" /> Keep Learning
               </button>
               <button onClick={handleLogout}

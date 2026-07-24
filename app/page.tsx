@@ -262,7 +262,7 @@ const Home = memo(function Home() {
                             : <div className="w-full h-full bg-gradient-to-br from-[var(--primary-soft)] to-[var(--blue-soft)] flex items-center justify-center"><BookOpen className="w-8 h-8 text-[var(--primary)]" /></div>
                           }
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          <span className="absolute bottom-2 left-2 px-2 py-0.5 bg-[var(--primary)] text-white text-[9px] font-bold rounded-full">AI Story</span>
+                          <span className="absolute bottom-2 left-2 px-2 py-0.5 bg-[var(--primary)] text-[var(--primary-fg)] text-[9px] font-bold rounded-full">AI Story</span>
                           <div className="absolute bottom-2 right-2 flex items-center gap-1 text-white/80 text-[9px]">
                             <Clock className="w-2.5 h-2.5" /> {Math.ceil(s.storyText.split(' ').length / 200)} min
                           </div>
@@ -314,7 +314,7 @@ const Home = memo(function Home() {
                           <p className="text-[10px] text-[var(--muted)]">{Array.isArray(pl.items) ? pl.items.length : 0} words</p>
                         </div>
                         <button onClick={e => { e.stopPropagation(); if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); } router.push('/playlists'); }}
-                          className="w-7 h-7 rounded-full bg-[var(--primary-soft)] flex items-center justify-center hover:bg-[var(--primary)] hover:text-white transition-all text-[var(--primary)] shrink-0">
+                          className="w-7 h-7 rounded-full bg-[var(--primary-soft)] flex items-center justify-center hover:bg-[var(--primary)] hover:text-[var(--primary-fg)] transition-all text-[var(--primary)] shrink-0">
                           <Volume2 className="w-3 h-3" />
                         </button>
                       </motion.div>

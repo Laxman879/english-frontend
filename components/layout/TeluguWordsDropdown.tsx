@@ -232,7 +232,7 @@ export default function TeluguWordsDropdown() {
                     >
                       <button
                         onClick={openStoryModal}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[var(--primary)] text-white rounded-xl text-[10px] font-bold hover:opacity-90 transition-all"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[var(--primary)] text-[var(--primary-fg)] rounded-xl text-[10px] font-bold hover:opacity-90 transition-all"
                       >
                         <Sparkles className="w-3 h-3" /> Generate Story
                       </button>
@@ -270,7 +270,7 @@ export default function TeluguWordsDropdown() {
                         <p className="text-[11px] text-[var(--primary)] truncate telugu">{teluguOf(w)}</p>
                       </button>
                       <button onClick={() => speak(w.word, w.id)}
-                        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all ${speaking === w.id ? 'bg-[var(--primary)] text-white' : 'bg-[var(--card2)] text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)]'}`}>
+                        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all ${speaking === w.id ? 'bg-[var(--primary)] text-[var(--primary-fg)]' : 'bg-[var(--card2)] text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)]'}`}>
                         {speaking === w.id ? <Check className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
                       </button>
                     </div>
@@ -317,7 +317,7 @@ export default function TeluguWordsDropdown() {
                     <button
                       onClick={createAndAdd}
                       disabled={!newPlaylistName.trim() || playlistLoading}
-                      className="px-3 py-2 bg-[var(--primary)] text-white rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-all flex items-center gap-1"
+                      className="px-3 py-2 bg-[var(--primary)] text-[var(--primary-fg)] rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-all flex items-center gap-1"
                     >
                       <Plus className="w-3.5 h-3.5" /> Create
                     </button>
@@ -403,7 +403,7 @@ export default function TeluguWordsDropdown() {
                 <button
                   onClick={generateStory}
                   disabled={generatingStory || !genre}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--primary)] text-white rounded-2xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--primary)] text-[var(--primary-fg)] rounded-2xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all"
                 >
                   <Sparkles className="w-4 h-4" />
                   {generatingStory ? 'Generating…' : 'Generate Story'}
@@ -436,7 +436,7 @@ export default function TeluguWordsDropdown() {
                   <X className="w-4 h-4 text-white" />
                 </button>
                 <div className="absolute bottom-3 left-3">
-                  <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[var(--primary)] text-white">{detailWord.badge}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[var(--primary)] text-[var(--primary-fg)]">{detailWord.badge}</span>
                 </div>
               </div>
 
@@ -445,7 +445,7 @@ export default function TeluguWordsDropdown() {
                   <h2 className="text-2xl font-extrabold text-[var(--text)]">{detailWord.word}</h2>
                   <button onClick={() => speak(detailWord.word, detailWord.id)}
                     className="w-9 h-9 rounded-full bg-[var(--primary)] flex items-center justify-center hover:opacity-90 transition-all shrink-0">
-                    <Volume2 className="w-4 h-4 text-white" />
+                    <Volume2 className="w-4 h-4 text-[var(--primary-fg)]" />
                   </button>
                 </div>
 
@@ -485,7 +485,7 @@ export default function TeluguWordsDropdown() {
                             <div className="flex items-center justify-between mb-1">
                               <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">{tense}</p>
                               <button onClick={() => speak(val, `${detailWord.id}-${tense}`)}
-                                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${speaking === `${detailWord.id}-${tense}` ? 'bg-[var(--primary)] text-white' : 'bg-[var(--border)] text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)]'}`}>
+                                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${speaking === `${detailWord.id}-${tense}` ? 'bg-[var(--primary)] text-[var(--primary-fg)]' : 'bg-[var(--border)] text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)]'}`}>
                                 <Volume2 className="w-3 h-3" />
                               </button>
                             </div>

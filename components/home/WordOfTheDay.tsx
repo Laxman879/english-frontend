@@ -91,7 +91,7 @@ const WordOfTheDay = memo(function WordOfTheDay({
                 speaking ? 'bg-[var(--blue)] shadow-lg' : 'bg-[var(--blue-soft)] hover:bg-[var(--blue)]'
               }`}
             >
-              <Volume2 className={`w-3.5 h-3.5 ${speaking ? 'text-white' : 'text-[var(--blue)]'}`} />
+              <Volume2 className={`w-3.5 h-3.5 ${speaking ? 'text-[var(--primary-fg)]' : 'text-[var(--blue)]'}`} />
             </motion.button>
             {speaking && <span className="text-xs text-[var(--blue)] font-semibold animate-pulse">Playing…</span>}
           </div>

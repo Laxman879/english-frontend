@@ -133,7 +133,7 @@ const StoryContent = memo(function StoryContent({
               </button>
               {/* Saved tooltip */}
               {justSaved && (
-                <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[var(--primary)] text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap z-10 pointer-events-none">
+                <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[var(--primary)] text-[var(--primary-fg)] text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap z-10 pointer-events-none">
                   Saved!
                 </span>
               )}
@@ -196,7 +196,7 @@ const StoryContent = memo(function StoryContent({
                 className="w-full px-4 py-3 text-sm bg-[var(--card2)] border border-[var(--border)] rounded-xl text-[var(--text)] focus:outline-none focus:border-[var(--primary)] transition-all resize-none leading-7" />
               <div className="flex gap-2">
                 <button onClick={handleSaveEdit} disabled={saving}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-50">
+                  className="flex items-center gap-1.5 px-4 py-2 bg-[var(--primary)] text-[var(--primary-fg)] rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-50">
                   <Check className="w-3.5 h-3.5" />{saving ? 'Saving…' : 'Save Changes'}
                 </button>
                 <button onClick={() => setEditing(false)}

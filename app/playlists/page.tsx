@@ -234,28 +234,28 @@ const PlaylistsPage = memo(function PlaylistsPage() {
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                 className="mb-5 bg-[var(--primary)] rounded-2xl p-4 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                  <Volume2 className="w-5 h-5 text-white" />
+                  <Volume2 className="w-5 h-5 text-[var(--primary-fg)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary-fg)]/60 mb-0.5">
                     Now Playing · {playingIdx + 1} of {playItems.length}
                   </p>
                   {currentItem.kind === 'story' ? (
                     <>
-                      <p className="text-base font-extrabold text-white truncate">📖 Story</p>
-                      <p className="text-xs text-white/70 truncate">{currentItem.data.storyText.slice(0, 60)}…</p>
+                      <p className="text-base font-extrabold text-[var(--primary-fg)] truncate">📖 Story</p>
+                      <p className="text-xs text-[var(--primary-fg)]/70 truncate">{currentItem.data.storyText.slice(0, 60)}…</p>
                     </>
                   ) : (
                     <>
-                      <p className="text-base font-extrabold text-white truncate">{currentItem.data.word}</p>
-                      <p className="text-xs text-white/70 truncate">{getTranslation(currentItem.data)}</p>
+                      <p className="text-base font-extrabold text-[var(--primary-fg)] truncate">{currentItem.data.word}</p>
+                      <p className="text-xs text-[var(--primary-fg)]/70 truncate">{getTranslation(currentItem.data)}</p>
                     </>
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button onClick={handleSkipBack}
                     className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-all">
-                    <SkipBack className="w-3.5 h-3.5 text-white" />
+                    <SkipBack className="w-3.5 h-3.5 text-[var(--primary-fg)]" />
                   </button>
                   <button onClick={() => handlePlay(playingId)}
                     className="w-9 h-9 rounded-full bg-white flex items-center justify-center hover:opacity-90 transition-all">
@@ -263,7 +263,7 @@ const PlaylistsPage = memo(function PlaylistsPage() {
                   </button>
                   <button onClick={handleSkipNext}
                     className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-all">
-                    <SkipForward className="w-3.5 h-3.5 text-white" />
+                    <SkipForward className="w-3.5 h-3.5 text-[var(--primary-fg)]" />
                   </button>
                 </div>
               </motion.div>
@@ -281,7 +281,7 @@ const PlaylistsPage = memo(function PlaylistsPage() {
               </p>
               {playlists.length === 0 && (
                 <button onClick={() => setModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all">
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-fg)] rounded-xl text-xs font-bold hover:opacity-90 transition-all">
                   <Plus className="w-3.5 h-3.5" /> Create First Playlist
                 </button>
               )}
@@ -307,7 +307,7 @@ const PlaylistsPage = memo(function PlaylistsPage() {
                       {isPlaying && (
                         <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-[var(--primary)] rounded-full px-2.5 py-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                          <span className="text-[9px] font-bold text-white uppercase">Playing</span>
+                          <span className="text-[9px] font-bold text-[var(--primary-fg)] uppercase">Playing</span>
                         </div>
                       )}
 
@@ -319,7 +319,7 @@ const PlaylistsPage = memo(function PlaylistsPage() {
                               className="flex-1 px-2 py-1 text-xs bg-white/20 backdrop-blur-sm border border-white/40 rounded-lg text-white focus:outline-none" />
                             <button onClick={() => saveTitle(p.id, p.titleInput || '')}
                               className="w-6 h-6 rounded-md bg-[var(--primary)] flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
+                              <Check className="w-3 h-3 text-[var(--primary-fg)]" />
                             </button>
                             <button onClick={() => setPlaylists(prev => prev.map(pl => pl.id === p.id ? { ...pl, editingTitle: false } : pl))}
                               className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
@@ -350,8 +350,8 @@ const PlaylistsPage = memo(function PlaylistsPage() {
                       <button onClick={() => handlePlay(p.id)}
                         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
                           isPlaying
-                            ? 'bg-[var(--primary)] text-white'
-                            : 'bg-[var(--primary-soft)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white'
+                            ? 'bg-[var(--primary)] text-[var(--primary-fg)]'
+                            : 'bg-[var(--primary-soft)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-fg)]'
                         }`}>
                         {isPlaying ? <><Pause className="w-3.5 h-3.5" /> Stop</> : <><Play className="w-3.5 h-3.5 fill-current" /> Play</>}
                       </button>

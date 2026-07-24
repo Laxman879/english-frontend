@@ -30,7 +30,7 @@ const HighlightedWords = memo(function HighlightedWords({ savedWords = [], onDel
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-[var(--text)]">Words Saved from Story</h3>
         {savedWords.length > 0 && (
-          <span className="text-[9px] font-bold uppercase tracking-wider bg-[var(--primary)] text-white px-2 py-0.5 rounded-full">
+          <span className="text-[9px] font-bold uppercase tracking-wider bg-[var(--primary)] text-[var(--primary-fg)] px-2 py-0.5 rounded-full">
             {savedWords.length} saved
           </span>
         )}
@@ -61,7 +61,7 @@ const HighlightedWords = memo(function HighlightedWords({ savedWords = [], onDel
                   <button
                     onClick={() => speak(w.word)}
                     className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
-                      spoken === w.word ? 'bg-[var(--primary)] text-white' : 'bg-[var(--border)] text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)]'
+                      spoken === w.word ? 'bg-[var(--primary)] text-[var(--primary-fg)]' : 'bg-[var(--border)] text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)]'
                     }`}
                   >
                     <Volume2 className="w-3.5 h-3.5" />

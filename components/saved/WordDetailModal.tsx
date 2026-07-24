@@ -127,7 +127,7 @@ const WordDetailModal = memo(function WordDetailModal({ word, onClose, onUpdate,
                 </div>
                 {/* Badge */}
                 <div className="absolute bottom-3 left-3">
-                  <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[var(--primary)] text-white">
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[var(--primary)] text-[var(--primary-fg)]">
                     {word.badge}
                   </span>
                 </div>
@@ -154,7 +154,7 @@ const WordDetailModal = memo(function WordDetailModal({ word, onClose, onUpdate,
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button onClick={speak}
                       className="w-8 h-8 rounded-full bg-[var(--primary)] flex items-center justify-center hover:opacity-90 transition-all">
-                      <Volume2 className="w-4 h-4 text-white" />
+                      <Volume2 className="w-4 h-4 text-[var(--primary-fg)]" />
                     </button>
                     <button onClick={() => setEditing(v => !v)}
                       className="w-8 h-8 rounded-full bg-[var(--card2)] flex items-center justify-center hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-all text-[var(--text2)]">
@@ -232,7 +232,7 @@ const WordDetailModal = memo(function WordDetailModal({ word, onClose, onUpdate,
                 {editing && (
                   <div className="flex gap-2">
                     <button onClick={handleSave} disabled={saving}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-[var(--primary)] text-white rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50">
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-[var(--primary)] text-[var(--primary-fg)] rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50">
                       <Check className="w-4 h-4" />{saving ? 'Saving…' : 'Save Changes'}
                     </button>
                     <button onClick={() => { setEditing(false); setWordVal(word.word); setMeaning(word.translation); setPast(word.examples?.past || ''); setPresent(word.examples?.present || ''); setFuture(word.examples?.future || ''); setTranslations(word.translations || {}); }}

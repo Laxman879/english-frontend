@@ -96,7 +96,7 @@ export default function ImageUploader({ onSave, onCancel }: Props) {
         <button
           onClick={handleSave}
           disabled={!urlInput.trim() || uploading || saving}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[var(--primary)] text-white rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[var(--primary)] text-[var(--primary-fg)] rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
           <Check className="w-3.5 h-3.5" />
           {saving ? 'Saving…' : 'Save Image'}

@@ -109,7 +109,7 @@ export default function LoginPage() {
                   )}
                 </div>
                 <span className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[var(--primary)] flex items-center justify-center shadow">
-                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                  <Sparkles className="w-3.5 h-3.5 text-[var(--primary-fg)]" />
                 </span>
               </div>
 

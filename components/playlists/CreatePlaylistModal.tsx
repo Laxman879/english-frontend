@@ -141,7 +141,7 @@ export default function CreatePlaylistModal({ open, onClose, onCreate }: Props) 
               <button
                 onClick={handleCreate}
                 disabled={!name.trim() || loading}
-                className="px-6 py-3 bg-[var(--primary)] text-white rounded-full text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-fg)] rounded-full text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {loading ? 'Creating…' : 'Create Playlist'}
               </button>

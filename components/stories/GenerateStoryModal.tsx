@@ -199,7 +199,7 @@ export default function GenerateStoryModal({ open, onClose, onGenerated }: Props
                       ) : (
                         <div className="flex flex-wrap gap-1.5">
                           {selectedLabels.slice(0, 4).map(w => (
-                            <span key={w} className="px-2 py-0.5 bg-[var(--primary)] text-white text-[10px] font-bold rounded-full">{w}</span>
+                            <span key={w} className="px-2 py-0.5 bg-[var(--primary)] text-[var(--primary-fg)] text-[10px] font-bold rounded-full">{w}</span>
                           ))}
                           {selectedLabels.length > 4 && (
                             <span className="px-2 py-0.5 bg-[var(--card)] border border-[var(--border)] text-[var(--muted)] text-[10px] font-bold rounded-full">+{selectedLabels.length - 4} more</span>
@@ -300,7 +300,7 @@ export default function GenerateStoryModal({ open, onClose, onGenerated }: Props
                 Cancel
               </button>
               <button onClick={handleGenerate} disabled={generating}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--primary)] text-white text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all">
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-fg)] text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all">
                 <Sparkles className="w-4 h-4" />
                 {generating ? 'Generating…' : 'Generate'}
               </button>

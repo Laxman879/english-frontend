@@ -133,11 +133,11 @@ const SavedWords = memo(function SavedWords() {
                   </button>
                   <div className="flex items-center bg-[var(--card)] border border-[var(--border)] rounded-2xl p-1 shrink-0">
                     <button onClick={() => setViewMode('grid')}
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-[var(--primary)] text-[var(--primary-fg)]' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
                       <LayoutGrid className="w-4 h-4" />
                     </button>
                     <button onClick={() => setViewMode('list')}
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${viewMode === 'list' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${viewMode === 'list' ? 'bg-[var(--primary)] text-[var(--primary-fg)]' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
                       <List className="w-4 h-4" />
                     </button>
                   </div>
@@ -165,7 +165,7 @@ const SavedWords = memo(function SavedWords() {
                   className="flex items-center gap-2 flex-wrap p-3 bg-[var(--card)] border border-[var(--border)] rounded-2xl">
                   <span className="text-xs font-bold text-[var(--primary)] mr-1">{selected.size} selected</span>
                   <button onClick={handleGenerateStory} disabled={generatingStory}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-[var(--primary)] text-white rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-60 transition-all">
+                    className="flex items-center gap-1.5 px-3 py-2 bg-[var(--primary)] text-[var(--primary-fg)] rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-60 transition-all">
                     <Sparkles className="w-3.5 h-3.5" />{generatingStory ? 'Generating…' : 'Generate Story'}
                   </button>
                   <button onClick={() => setPlaylistModal(true)}

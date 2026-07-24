@@ -164,7 +164,7 @@ export default memo(function StreakPage() {
                       <div className="flex items-center justify-between mb-2">
                         <p className={`text-xs font-extrabold ${isCurrentMonth ? 'text-[var(--primary)]' : 'text-[var(--text)]'}`}>{monthName} {currentYear}</p>
                         {monthActive > 0 && (
-                          <span className="text-[9px] font-bold bg-[var(--primary)] text-white px-1.5 py-0.5 rounded-full">{monthActive}d</span>
+                          <span className="text-[9px] font-bold bg-[var(--primary)] text-[var(--primary-fg)] px-1.5 py-0.5 rounded-full">{monthActive}d</span>
                         )}
                       </div>
 
@@ -191,7 +191,7 @@ export default memo(function StreakPage() {
                             <div key={day} title={dateStr}
                               className={`w-full aspect-square rounded-sm flex items-center justify-center text-[8px] font-bold transition-all ${
                                 isToday   ? 'bg-[var(--fire)] text-white ring-1 ring-[var(--fire)] ring-offset-1' :
-                                isActive  ? 'bg-[var(--primary)] text-white' :
+                                isActive  ? 'bg-[var(--primary)] text-[var(--primary-fg)]' :
                                 isFuture  ? 'bg-transparent' :
                                 'bg-[var(--card)] border border-[var(--border)] text-[var(--muted)]'
                               }`}>
@@ -226,7 +226,7 @@ export default memo(function StreakPage() {
                     <div key={i} className="flex flex-col items-center gap-1">
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
                         isToday   ? 'bg-[var(--fire)] text-white shadow-lg' :
-                        isActive  ? 'bg-[var(--primary)] text-white' :
+                        isActive  ? 'bg-[var(--primary)] text-[var(--primary-fg)]' :
                         'bg-[var(--card2)] border border-[var(--border)] text-[var(--muted)]'
                       }`}>
                         {isActive ? <Flame className="w-4 h-4" /> : d.getDate()}

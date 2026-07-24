@@ -119,7 +119,7 @@ const StoriesPage = memo(function StoriesPage() {
                     onClick={() => setCurrent(s)}
                     className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                       current?._id === s._id
-                        ? 'bg-[var(--primary)] text-white'
+                        ? 'bg-[var(--primary)] text-[var(--primary-fg)]'
                         : 'bg-[var(--card)] border border-[var(--border)] text-[var(--text2)] hover:border-[var(--primary)]'
                     }`}
                   >

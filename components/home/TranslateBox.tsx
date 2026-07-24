@@ -158,14 +158,14 @@ const TranslateBox = memo(function TranslateBox() {
                   <button
                     onClick={() => speak(result.translation, to)}
                     aria-label="Listen to translation"
-                    className="w-7 h-7 rounded-lg bg-[var(--card)] flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all"
+                    className="w-7 h-7 rounded-lg bg-[var(--card)] flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-fg)] transition-all"
                   >
                     <Volume2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={copy}
                     aria-label="Copy translation"
-                    className="w-7 h-7 rounded-lg bg-[var(--card)] flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all"
+                    className="w-7 h-7 rounded-lg bg-[var(--card)] flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-fg)] transition-all"
                   >
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
